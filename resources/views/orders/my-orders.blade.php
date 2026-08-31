@@ -146,8 +146,8 @@
                 </div>
 
                 <div class="order-body">
-                    @if($order->product && $order->product->image)
-                        <img src="{{ Storage::url($order->product->image) }}" alt="{{ $order->product->name }}" class="order-img">
+                    @if($order->product)
+                        <img src="{{ $order->product->image_url }}" alt="{{ $order->product->name }}" class="order-img">
                     @else
                         <div class="order-img" style="display:flex;align-items:center;justify-content:center;color:var(--gray-400);font-size:24px;">
                             <i class="fas fa-image"></i>

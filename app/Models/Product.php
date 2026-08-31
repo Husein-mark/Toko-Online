@@ -38,13 +38,30 @@ class Product extends Model
 
     public function getImageUrlAttribute(): string
     {
-        if ($this->image) {
-            if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
-                return $this->image;
-            }
-            return asset('storage/' . $this->image);
+        if (!$this->image) {
+            return 'https://images.unsplash.com/photo-1609592424074-b52fa10e75a6?w=600&auto=format&fit=crop&q=80';
         }
-        return asset('images/placeholder.jpg');
+
+        $img = trim($this->image);
+
+        // Jika berupa URL web eksternal (http://, https://, //, atau www.)
+        if (
+            str_starts_with($img, 'http://') ||
+            str_starts_with($img, 'https://') ||
+            str_starts_with($img, '//') ||
+            str_starts_with($img, 'www.')
+        ) {
+            if (str_starts_with($img, 'www.')) {
+                return 'https://' . $img;
+            }
+            if (str_starts_with($img, '//')) {
+                return 'https:' . $img;
+            }
+            return $img;
+        }
+
+        // Jika berupa file upload lokal di storage (misal: "products/filename.jpg")
+        return asset('storage/' . ltrim($img, '/'));
     }
 
     public function isInStock(): bool

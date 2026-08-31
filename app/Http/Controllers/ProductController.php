@@ -65,15 +65,15 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'price'       => ['required', 'numeric', 'min:0'],
             'stock'       => ['required', 'integer', 'min:0'],
-            'image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'image_url'   => ['nullable', 'url'],
+            'image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
+            'image_url'   => ['nullable', 'string'],
         ]);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
         } elseif ($request->filled('image_url')) {
-            $imagePath = $request->image_url;
+            $imagePath = trim($request->image_url);
         }
 
         Product::create([
@@ -105,18 +105,25 @@ class ProductController extends Controller
             'description' => ['nullable', 'string'],
             'price'       => ['required', 'numeric', 'min:0'],
             'stock'       => ['required', 'integer', 'min:0'],
-            'image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'image_url'   => ['nullable', 'url'],
+            'image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
+            'image_url'   => ['nullable', 'string'],
         ]);
 
         $imagePath = $product->image;
+
+        // 1. Jika pengguna mengunggah file baru dari komputer
         if ($request->hasFile('image')) {
             if ($imagePath && !str_starts_with($imagePath, 'http')) {
                 Storage::disk('public')->delete($imagePath);
             }
             $imagePath = $request->file('image')->store('products', 'public');
-        } elseif ($request->filled('image_url')) {
-            $imagePath = $request->image_url;
+        } 
+        // 2. Jika pengguna memasukkan/mengubah URL gambar
+        elseif ($request->filled('image_url') && trim($request->image_url) !== $product->image) {
+            if ($imagePath && !str_starts_with($imagePath, 'http')) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = trim($request->image_url);
         }
 
         $product->update([
@@ -129,7 +136,7 @@ class ProductController extends Controller
         ]);
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Produk berhasil diperbarui!');
+            ->with('success', 'Produk "' . $product->name . '" berhasil diperbarui!');
     }
 
     // Admin: hapus produk
